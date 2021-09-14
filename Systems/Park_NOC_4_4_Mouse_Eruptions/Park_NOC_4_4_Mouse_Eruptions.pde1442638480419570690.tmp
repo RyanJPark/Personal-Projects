@@ -1,0 +1,15 @@
+ParticleTwiceRemoved ALL;//creates the particle system
+
+void setup() {
+  size(1280,800);
+  smooth();
+  ALL = new ParticleTwiceRemoved();
+  import java.util.Iterator; //needed to run the arraylist function iterator
+}
+
+void draw() {
+  background(255);
+  ALL.addFountain(new PVector (mouseX,mouseY));
+  //ps.run();
+       //runs the code, adds particles every draw cycle
+}
