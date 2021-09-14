@@ -1,0 +1,146 @@
+/* Ryan P    "12/12/19"
+"Flow Field Perlin"
+Information Engineering  '18-19     St. Mark's School of Texas 
+
+Code Abstract: "To create a perlin generated randomly pointing flow field at all points on the screen"
+Source(s): Daniel Shiffman: https://natureofcode.com/book/chapter-6-autonomous-agents/
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License v3 as published by the Free Software Foundation
+
+notes: Hold down the mouse to see flow field.
+*/
+
+FF a;
+vcl[] veh=new vcl[5000];
+void setup(){
+  background(255);
+  size(1800,1800);
+  a=new FF();
+  smooth();
+  
+  for(int i=0;i<veh.length;i++){
+    veh[i]=new vcl(a, (int) random(255), (int) random(255),  (int) random(255) );
+    //veh[i]=new vcl(a,0,0,100);
+  }
+}
+
+void draw(){
+  //background(200);
+  fill(255,5);
+  noStroke();
+  //rect(0,0,width,height);
+  a.display();
+  if(mousePressed) a.asdf=a.asdf*-1;
+  
+  for(vcl b: veh){
+    b.run();
+  }
+}
+
+
+
+class FF{
+  PVector [][] Field;
+  int row,column;
+  int res;
+  //PVector screenMid = new PVector (width/2, height/2);
+  PVector gridMid,gridFlow;
+  float xoff,yoff,d;
+  int asdf;
+  
+  FF(){
+    res=20;
+    
+    column=width/res +1;
+    row=height/res +1;
+    
+    Field=new PVector [column][row]; 
+    
+    d=.2;
+    
+    asdf=1;
+  }
+  
+  
+  
+  void display(){
+    xoff=0;
+    for (int i = 0; i < column; i++) {
+      yoff=0;
+      for (int j = 0; j < row; j++) {
+        int xcoord=(i*res)-res/2;
+        int ycoord=(j*res)-res/2;
+        gridMid=new PVector(xcoord,ycoord);
+        //gridFlow=PVector.sub(screenMid,gridMid); //to point toward the center
+        gridFlow=new PVector( cos(map(noise(xoff,yoff),0,1,0,TWO_PI) ),sin(map(noise(xoff,yoff),0,1,0,TWO_PI) ) );
+        
+        gridFlow.normalize().mult(10);
+        Field[i][j] = gridFlow;
+        int R = (int) map(gridFlow.heading2D(),0,2*PI,150,255);
+        int G = (int) map(gridFlow.heading2D(),0,2*PI,50,200);
+        int B = (int) map(gridFlow.heading2D(),0,2*PI,75,175);
+        //stroke(R,G,B);
+        stroke(175,20);
+        strokeWeight(3);
+        if(asdf==-1){
+          line(gridMid.x,gridMid.y,gridMid.x+gridFlow.x,gridMid.y+gridFlow.y);  
+        }
+          yoff+=d;
+      }
+      xoff+=d;
+    }   
+  }
+  PVector lookup(PVector l){
+    int cols = int(constrain(l.x/res,0,column-1));
+    int ro = int(constrain(l.y/res,0,row-1));
+    return Field[cols][ro].get();
+  }
+}
+
+
+class vcl{
+  FF a;
+  PVector position, velocity;
+  int r,R,G,B;
+  vcl(FF a_,int R_,int G_,int B_){
+    position = new PVector( random(width)+20, random(width) );
+    velocity= new PVector (-5,0);
+    a=a_;
+    r=10;
+    R=R_;
+    G=G_;
+    B=B_;
+  }
+  void run(){
+    move();
+    borders();
+    display();
+  }
+  void move(){
+    velocity = a.lookup(position);
+    position.add(velocity);
+  }
+  void borders() {
+    if (position.x < -r) position.x = width+r;
+    if (position.y < -r) position.y = height+r;
+    if (position.x > width+r) position.x = -r;
+    if (position.y > height+r) position.y = -r;
+  }
+    void display() {
+    // Draw a triangle rotated in the direction of velocity
+    float theta = velocity.heading2D() + radians(90);
+    fill(R,G,B,70);
+    stroke(0);
+    noStroke();
+    /*pushMatrix();
+    translate(position.x,position.y);
+    rotate(theta);
+    beginShape();
+    vertex(0, -r*2);
+    vertex(-r, r*2);
+    vertex(r, r*2);
+    endShape();
+    popMatrix();*/
+    ellipse(position.x,position.y,5,5);
+  }
+}
